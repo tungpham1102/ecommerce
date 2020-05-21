@@ -1,0 +1,124 @@
+{% extends 'store/main.html' %}
+{% load static %}
+{% block title %}Cart{% endblock title %}
+{% block content %}
+
+<!--
+- Show ra những sản phẩm được add to cart bởi button add to cart trong store.html
+- Button:
+back to store.html
+Checkout
+- Html & Css:
+make a row with col-lg-12
+make two box
+box 1: show ra tổng số items đã add và tổng giá tiền
+box 2: show chi tiết những sản phẩm: image, name, price, quantity and total for per product
+
+
+
+- Controller
+để show products added to cart:
+xét xem user logged in or not.
+if not: k hiện ra 1 cái gì:
+    items = []
+    order = {
+        'get_cart_items': 0,
+        'get_cart_total': 0
+    }
+    cart_items = order["get_cart_items"],
+        context = {
+        'items': items,
+        'order': order,
+        'cart_items': cart_items
+    }
+if is_authenticated:
+    lấy ra customer đã add:
+    customer = request.user.customer
+    tạo ra order, với order chưa hoàn thành False:
+    order, created = Order.objects.get_or_create(customer, complete=False)
+    rồi lấy tất cả các items đã order (add to cart):
+    order_items = order.orderitem_set.all()
+    # số lượng của các items đã order
+    cart_items = order.get_cart_items
+    với get_cart_items in models Order (tính tổng số lượng các items khi đã order)
+    def get_cart_items(self):
+        order_items = self.orderitem_set.all()
+        total = sum(item.quantity for item in order_items )
+
+
+Update quantity with + -:
+
+Handle by JS and views
+js:
+chọn url cần dùng '/update_item/'
+fetch với method, headers: Content-Type, csrftoken, body JSON.string-ify với id, action, lấy từ html
+và promise
+
+views: loads body from body json của js
+lấy ra id, action đã click, lấy từ js
+
+create or remove sản phầm đã click.
+
+phải lấy customer đang dùng,
+lấy ra product bằng cách get product_id
+rồi created order với customer và order = False
+tiếp tục create sản phẩm với product_id, và order
+
+xét action từ html, js:
+if add: quantity + 1
+remove: quantity - 1
+ìf quantity <= 0: delete order
+
+
+-->
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="box-element">
+            <a class="btn btn-outline-dark" href="{% url 'store' %}">&#x2190;Continue Shopping</a>
+            <br>
+            <br>
+            <table class="table">
+                <tr>
+                    <th><h5>Items: <Strong>{{ order.get_cart_items }}</Strong></h5></th>
+                    <th><h5>Total: <Strong>${{ order.get_cart_total | floatformat:2 }}</Strong></h5></th>
+                    <th>
+                        <a style="float:right; margin:5px" class="btn btn-success" href="{% url 'checkout' %}">Checkout</a>
+                    </th>
+                </tr>
+            </table>
+        </div>
+
+        <br>
+
+        <div class="box-element">
+            <div class="cart-row">
+                <div style="flex:2"></div>
+                <div style="flex:2"><Strong>Item</Strong></div>
+                <div style="flex:2"><Strong>Price</Strong></div>
+                <div style="flex:1"><Strong>Quantity</Strong></div>
+                <div style="flex:1"><Strong>Delete</Strong></div>
+                <div style="flex:1"><Strong>Total</Strong></div>
+            </div>
+            {% for item in items %}
+            <div class="cart-row">
+                <div style="flex:2"><img class="row-image" src="{{ item.product.image_url }}" alt=""></div>
+                <div style="flex:2">{{ item.product.name }}</div>
+                <div style="flex:2">${{ item.product.price | floatformat:2 }}</div>
+                <div style="flex:1">
+                    <p class="quantity">{{ item.quantity }}</p>
+                    <div class="quantity">
+                        <img data-product="{{item.product.id}}" data-action="add" src="{% static 'images/arrow-up.png' %}" alt="" class="chg-quantity update-cart">
+                        <img data-product="{{item.product.id}}" data-action="remove" src="{% static 'images/arrow-down.png' %}" alt="" class="chg-quantity update-cart">
+                    </div>
+                </div>
+                <div style="flex:1"><img data-product="{{ item.product.id }}" data-action="trash" src="{% static 'images/trash.png' %}" style="width:24px; height:24px" alt="" class="chg-quantity update-cart"></div>
+                <div style="flex:1">${{ item.get_total | floatformat:2 }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+

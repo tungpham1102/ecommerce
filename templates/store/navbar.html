@@ -1,0 +1,35 @@
+{% load static %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand" href="{% url 'store' %}">Ecom</a>
+    <button aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler"
+            data-target="#navbarSupportedContent" data-toggle="collapse" type="button">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href="{% url 'store' %}">Store <span class="sr-only">(current)</span></a>
+            </li>
+        </ul>
+        <div class="form-inline my-2 my-lg-0" style="margin-right: 20px">
+            {% if user.is_authenticated %}
+                <h3><strong><a style="color: white; text-decoration: none; margin-right: 20px;" href="{% url 'user_page' %}">Hello {{ user.customer.name }}</a></strong></h3>
+                <a style="color: white; border-radius: 4px" class="btn btn-outline-danger" href="{% url 'logout' %}">Logout</a>
+            {% else %}
+                <a style="color: white; margin-right:5px; border-radius: 4px" class="btn btn-outline-success" href="{% url 'login' %}">Login</a>
+                <a style="color: white; border-radius: 4px" class="btn btn-outline-primary" href="{% url 'register' %}">register</a>
+            {% endif %}
+
+
+            <a href="{% url 'cart' %}">
+                <img alt="cart" id="cart-icon" src="{% static 'images/cart.png' %}">
+            </a>
+            <p id="cart-total">{{ cart_items }}</p>
+        </div>
+        <form class="form-inline my-2 my-lg-0" action="/search/">
+            <input class="form-control mr-sm-2" type="search" name="q" placeholder="Search Title Product" aria-label="Search">
+            <button class="btn btn-outline-warning my-2 my-sm-0" type="submit">Search</button>
+        </form>
+    </div>
+</nav>

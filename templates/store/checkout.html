@@ -1,0 +1,285 @@
+{% extends 'store/main.html' %}
+{% load static %}
+{% block title %}Checkout{% endblock title %}
+{% block content %}
+
+<!--
+- html-css
+1 row, 2 col-lg-6
+- Handle Shipping
+if product.digital:
+    dùng js chỉ show ra make payment
+if not product.digital:
+    show ra shipping info
+    when click button continue, ẩn button continue, hiện ra make-payment
+
+when click make-payment.
+handle by js, views.
+handle với process_order
+tạo id transaction: bằng cách cho datetime
+load data json.body
+xét user_is.authenticated():
+    customer = request.user.cutomer
+    create order, với customer, complete=False
+    total = float(data['form']['total']) lấy total từ form json
+    transaction_id = id tạo trên
+    xét nếu mà total = với tổng giá trị các sản phầm đã order thì
+    order.complete = True
+    def get_cart_total(self):
+        order_items = self.orderitem_set.all()
+        total = sum(item.get_total for item in order_items)
+        return total
+
+    với get_total
+    def get_total(self):
+        total = self.product.quantity * self.product.price
+        return total
+
+    nếu order.shiping:
+    tạo shippingaddress với
+    if order.shipping:
+    ShippingAddress.objects.create(
+        customer=customer,
+        order = order,
+        address = data['shipping']['address'],
+        city = data['shipping']['city'],
+        state = data['shipping']['state'],
+        zipcode = data['shipping']['zipcode'],
+    )
+
+    nếu user if not logged: thông báo;
+-->
+
+<div class="row">
+    <div class="col-lg-6">
+        <div class="box-element" id="form-wrapper">
+            <form action="" id="form">
+<!--                {% csrf_token %} fix csrf token-->
+                <div id="user-info">
+                    <div class="form-field">
+                        <input type="text" class="form-control" name="name" placeholder="Name...">
+                    </div>
+                    <div class="form-field">
+                        <input type="text" class="form-control" name="email" placeholder="Email...">
+                    </div>
+                </div>
+                <div id="shipping-info">
+                    <hr>
+                    <p>Shipping Information</p>
+                    <div class="form-field">
+                        <input type="text" class="form-control" name="address" placeholder="Address...">
+                    </div>
+                    <div class="form-field">
+                        <input type="text" class="form-control" name="city" placeholder="City...">
+                    </div>
+                    <div class="form-field">
+                        <input type="text" class="form-control" name="state" placeholder="State...">
+                    </div>
+                    <div class="form-field">
+                        <input type="text" class="form-control" name="zipcode" placeholder="Zipcode...">
+                    </div>
+                    <div class="form-field">
+                        <input type="text" class="form-control" name="country" placeholder="Country...">
+                    </div>
+                </div>
+                <hr>
+                <input id="form-button" class="btn btn-success btn-block" type="submit" value="Continue">
+            </form>
+        </div>
+        <br>
+        <div class="box-element hidden" id="payment-info">
+            <small>Paypal Options</small>
+            <div id="paypal-button-container"></div>
+<!--            <button id="make-payment">Make Payment</button>-->
+        </div>
+    </div>
+    <br>
+    <div class="col-lg-6">
+        <div class="box-element">
+            <a href="{% url 'cart' %}" class="btn btn-outline-dark">&#x2190; Back to Cart</a>
+            <hr>
+            <h3>Order Summary</h3>
+            <hr>
+            {% for item in items %}
+            <div class="cart-row">
+                <div style="flex:2"><img class="row-image" src="{{ item.product.image_url }}" alt=""></div>
+                <div style="flex:2"><p>{{ item.product.name }}</p></div>
+                <div style="flex:2"><p>${{ item.product.price }}</p></div>
+                <div style="flex:2"><p>x{{item.quantity}}</p></div>
+            </div>
+            {% endfor %}
+            <h5>Items: {{ order.get_cart_items }}</h5>
+            <h5>Total: $ {{ order.get_cart_total | floatformat:2 }}</h5>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+{% block script %}
+
+    <script src="https://www.paypal.com/sdk/js?client-id=AR-A5otVxaLAbCajeIlRRannrdUKcaeCOf_t5WDK0Eja883b4e_3Ah2PN-qskFu9dpwVQvUqcrRtoT2v&currency=USD&disable-funding=credit"></script>
+    <script>
+
+        var total = '{{ order.get_cart_total }}'
+        // Render the PayPal button into #paypal-button-container
+        paypal.Buttons({
+            style: {
+                color: 'blue',
+                shape: 'rect'
+            },
+
+            // Set up the transaction
+            createOrder: function(data, actions) {
+                return actions.order.create({
+                    purchase_units: [{
+                        amount: {
+                            value: parseFloat(total).toFixed(2)
+                        }
+                    }]
+                });
+            },
+
+            // Finalize the transaction
+            onApprove: function(data, actions) {
+                return actions.order.capture().then(function(details) {
+                    // Show a success message to the buyer
+                    submitFormData()
+                });
+            }
+
+
+        }).render('#paypal-button-container');
+    </script>
+
+<script>
+    var shipping = "{{ order.shipping }}"
+
+    // shipping == False tức là product.digital == True
+    if (shipping == 'False'){
+        document.getElementById('shipping-info').innerHTML = ""
+    }
+    if (user != "AnonymousUser"){
+        document.getElementById('user-info').innerHTML = ""
+    }
+
+    if (shipping == "False" && user != "AnonymousUser"){
+        // Hide entire form if user is logged in and shipping is false
+        // if product.digital == True => shipping == False
+        console.log(shipping)
+        document.getElementById('form-wrapper').classList.add('hidden')
+        // Show payment if logged in user wants to buy an item that does not require shipping
+        document.getElementById('payment-info').classList.remove('hidden')
+    }
+
+    var form = document.getElementById('form')
+    // csrftoken = form.getElementsByTagName('input')[0].value
+    // console.log('New Token: ', form.getElementsByTagName("input")[0].value)
+
+    form.addEventListener('submit', function(e){
+        e.preventDefault()
+        console.log("Form Submitted...")
+        validateData()
+    })
+    /*
+    document.getElementById('make-payment').addEventListener('click', function(e){
+        submitFormData()
+    })
+    */
+
+    function validateData(){
+        var userFormData = {
+            'name': null,
+            'email': null,
+            'total': total
+        }
+        var shippingInfo = {
+            'address': null,
+            'city': null,
+            'state': null,
+            'zipcode': null,
+        }
+
+        if (user == "AnonymousUser"){
+            if (form.name.value == ""){
+                alert("name is required")
+                return false
+            } else if (form.email.value == ""){
+                alert("email is required")
+                return false
+            }
+        }
+
+        if (shipping != "False"){
+            if (form.address.value == ""){
+                alert("address is required")
+                return false
+            } else if (form.city.value == ""){
+                alert("city is required")
+                return false
+            } else if (form.state.value == ""){
+                alert("state is required")
+                return false
+            } else if (form.zipcode.value == ""){
+                alert("zipcode is required")
+                return false
+            } else {
+                document.getElementById('form-button').classList.add('hidden')
+                document.getElementById('payment-info').classList.remove('hidden')
+            }
+        }
+    }
+
+    function submitFormData(){
+        console.log('Submit Button click...')
+        var userFormData = {
+            'name': null,
+            'email': null,
+            'total': total
+        }
+        var shippingInfo = {
+            'address': null,
+            'city': null,
+            'state': null,
+            'zipcode': null,
+        }
+
+        if (user == "AnonymousUser"){
+            userFormData.name = form.name.value
+            userFormData.email = form.email.value
+        }
+
+        if (shipping != "False"){
+            shippingInfo.address = form.address.value
+            shippingInfo.city = form.city.value
+            shippingInfo.state = form.state.value
+            shippingInfo.zipcode = form.zipcode.value
+        }
+
+
+        var url = '/process_order/'
+        fetch(url, {
+            method: "POST",
+            headers: {
+                'Content-Type': "application/json",
+                'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify({
+                'form': userFormData,
+                'shipping': shippingInfo
+            })
+        })
+        .then((response) => response.json())
+        .then((data) => {
+            console.log('Success', data)
+            alert('Transaction completed !!!')
+
+            cart = {}
+            document.cookie = 'cartCookie=' + JSON.stringify(cart) + ";domain=;path=/"
+
+            window.location.href = "{% url 'store' %}"
+        })
+    }
+</script>
+{% endblock script %}
+

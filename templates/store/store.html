@@ -1,0 +1,57 @@
+{% extends 'store/main.html' %}
+{% load static %}
+{% block title %}Store{% endblock title %}
+{% block content %}
+
+<!--
+- show ra tất cả các product bao gồm, image, name, price
+
+- Style:
+container,
+thumnail
+product
+
+- Khi click add to cart thì js sẽ handle, lấy id, action của product,
+handle by js and views
+
+- Update quantity with + -:
+
+Handle by JS and views
+js:
+chọn url cần dùng '/update_item/'
+fetch với method, headers: Content-Type, csrftoken, body JSON.string-ify với id, action, lấy từ html
+và promise
+
+views: loads body from body json của js
+lấy ra id, action đã click, lấy từ js
+
+create sản phầm đã click.
+
+phải lấy customer đang dùng,
+lấy ra product bằng cách get product_id
+rồi created order với customer và order = False
+tiếp tục create sản phẩm với product_id, và order
+
+xét action từ html, js:
+add: quantity + 1
+
+-->
+
+<div class="row">
+    {% for product in products %}
+    <div class="col-lg-4">
+        <img class="thumbnail" src="{{product.image_url}}" alt="image">
+        <div class="box-element product">
+            <h6><Strong>{{ product.name }}</Strong></h6>
+            <hr>
+            <button data-product="{{product.id}}" data-action="add" class="btn btn-outline-secondary add-btn update-cart">Add to Cart</button>
+            <a href="{% url 'product_detail' product.id %}" class="btn btn-outline-success">View</a>
+            <h4 style="display:inline-block; float:right;">${{ product.price|floatformat:2 }}</h4>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock content %}
+
+

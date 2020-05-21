@@ -1,0 +1,42 @@
+{% extends 'store/main.html' %}
+{% load static %}
+{% block title %}Profile User{% endblock title %}
+{% block style %}
+<style>
+.img-user {
+    margin: 20px 0;
+    width: 500px;
+    height: 500px;
+    padding: 10px;
+    border: 1px solid;
+    border-radius: 25%;
+}
+.info {
+    margin-top: 40px;
+}
+</style>
+{% endblock style %}
+{% block content %}
+<div class="container-fluid">
+<div class="row">
+    <div class="col-md-6">
+        <div class="info card-body">
+            <h1>Information</h1>
+            <hr>
+            <h1><strong>Name: {{ user.customer.name }}</strong></h1>
+            <h2>Email: {{ user.customer.email }}</h2>
+            <hr>
+            <h3>Date of Birth: </h3>
+            <h3>Address: </h3>
+            <h3>Phone: </h3>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <img class="img-user" src="{% static 'images/default.jpg' %}" alt="user-image">
+    </div>
+</div>
+</div>
+{% endblock content %}
+
+
