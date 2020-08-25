@@ -24,7 +24,7 @@ def store(request):
 
 
 def cart(request):
-	data = cart_data(request)
+    data = cart_data(request)
     cart_items = data['cart_items']
     order = data['order']
     items = data['items']
