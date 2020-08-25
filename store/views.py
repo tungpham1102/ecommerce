@@ -12,7 +12,7 @@ from .utils import cookie_cart, cart_data, guest_order
 
 
 def store(request):
-	products = Product.objects.all()
+    products = Product.objects.all()
     data = cart_data(request)
     cart_items = data['cart_items']
 
